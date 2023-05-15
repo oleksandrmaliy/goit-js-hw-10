@@ -30,8 +30,10 @@ function onInputSearch(event) {
         return;
       } else if (data.length > 2 && data.length <= 10) {
         createMarkupAll(data);
+        return;
       } else if (data.length === 1) {
         createMarkupOne(data);
+        return;
       }
     })
     .catch(error => {
