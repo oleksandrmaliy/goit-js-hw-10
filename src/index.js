@@ -15,29 +15,33 @@ input.addEventListener('input', debounce(onInputSearch, DEBOUNCE_DELAY));
 function onInputSearch(event) {
   event.preventDefault();
 
+  clearHtml();
+
   const inputName = event.target.value.trim();
 
+  if (inputName === '') {
+    Notiflix.Notify.failure('Please enter valid country name!');
+    input.value = '';
+    return;
+  }
+
   fetchCountries(inputName)
-    .then(data => {
-      clearHtml();
-      if (data.length > 10) {
+    .then(response => {
+      if (response.length > 10) {
         Notiflix.Notify.info(
           'Too many matches found. Please enter a more specific name.'
         );
         return;
-      } else if (data.status === 404) {
-        Notiflix.Notify.failure('Oops, there is no country with that name');
+      } else if (response.length > 2 && response.length <= 10) {
+        createMarkupAll(response);
         return;
-      } else if (data.length > 2 && data.length <= 10) {
-        createMarkupAll(data);
-        return;
-      } else if (data.length === 1) {
-        createMarkupOne(data);
+      } else if (response.length === 1) {
+        createMarkupOne(response);
         return;
       }
     })
     .catch(error => {
-      error;
+      Notiflix.Notify.failure('Oops, there is no country with that name');
     });
 }
 
@@ -46,8 +50,8 @@ function clearHtml() {
   countryInfo.innerHTML = '';
 }
 
-function createMarkupOne(data) {
-  const { name, capital, population, flags, languages } = data[0];
+function createMarkupOne(response) {
+  const { name, capital, population, flags, languages } = response[0];
   const markup = `<div>
             <img src="${flags.svg}" alt="flag of ${name.official}" width="40px">
             <span style="font-size: 30px;"><b>${name.official}</b></span>
@@ -69,8 +73,8 @@ function createMarkupOne(data) {
   return (countryInfo.innerHTML = markup);
 }
 
-function createMarkupAll(data) {
-  const markup = data
+function createMarkupAll(response) {
+  const markup = response
     .map(
       ({ name, flags }) =>
         `<li style="margin-top: 10px;">
